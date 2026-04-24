@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: samarkand-bot
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_GROUP_ID
+        sync: false
+      - key: SPREADSHEET_ID
+        sync: false
+      - key: GOOGLE_CREDS_FILE
+        value: credentials.json
