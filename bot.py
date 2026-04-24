@@ -6,8 +6,8 @@ Uzbek messages · Python 3.11+ · aiogram 3.x · Google Sheets API
 import asyncio
 import logging
 import os
+import re
 from datetime import datetime
-from typing import Optional
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
@@ -79,6 +79,8 @@ SAMARKAND_DISTRICTS = [
     "Urgut tumani",
     "Qo'shrabot tumani",
 ]
+
+UZBEK_PHONE_RE = re.compile(r"^\+998\d{9}$")
 
 
 # ──────────────────────────────────────────────────────────
@@ -187,7 +189,16 @@ async def process_district(callback: CallbackQuery, state: FSMContext):
 @dp.message(Registration.fullname)
 async def process_fullname(message: Message, state: FSMContext):
     """Store fullname → ask phone via contact button."""
-    await state.update_data(fullname=message.text.strip())
+    full_name = (message.text or "").strip()
+    if len(full_name.split()) < 2:
+        await message.answer(
+            "⚠️ Iltimos, ism va familiyani to'liq kiriting.\n"
+            "<i>Masalan: Aliyev Akmal</i>",
+            parse_mode="HTML",
+        )
+        return
+
+    await state.update_data(fullname=full_name)
     await state.set_state(Registration.phone)
     await message.answer(
         "📞 Telefon raqamingizni yuboring.\n"
@@ -226,10 +237,10 @@ async def phone_not_shared(message: Message):
 @dp.message(Registration.parent)
 async def process_parent_phone(message: Message, state: FSMContext, bot: Bot):
     """Validate parent phone → save to Sheets → notify admin → confirm to user."""
-    raw = message.text.strip()
+    raw = (message.text or "").strip()
 
     # Validation
-    if not raw.startswith("+998") or len(raw) < 12:
+    if not UZBEK_PHONE_RE.fullmatch(raw):
         await message.answer(
             "❌ Telefon raqam noto'g'ri kiritildi. Iltimos, raqamni <b>+998</b> bilan "
             "boshlanadigan formatda qayta yozing.\n"

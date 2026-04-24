@@ -131,6 +131,22 @@ You should see:
 
 ## Running in production (keep it alive 24/7)
 
+## Render (free) ga deploy qilish
+
+Ushbu loyiha `render.yaml` bilan tayyorlangan. Render’da yangi **Blueprint** service ochsangiz, sozlamalar avtomatik olinadi.
+
+1. GitHub repository'ni Render’ga ulang.
+2. **New + → Blueprint** ni tanlang.
+3. Env vars kiriting:
+   - `BOT_TOKEN`
+   - `ADMIN_GROUP_ID`
+   - `SPREADSHEET_ID`
+   - `GOOGLE_CREDS_JSON`  ← `credentials.json` faylining to‘liq JSON matni
+4. Deploy tugagach, loglarda `Bot started` va `Health check server started` yozuvlarini tekshiring.
+
+> Nega `GOOGLE_CREDS_JSON`?
+> Render free muhitida fayl saqlash ishonchli emas, shuning uchun service account JSON ni env orqali berish tavsiya etiladi.
+
 ### Option A — systemd (Linux VPS)
 
 Create `/etc/systemd/system/samarkand-bot.service`:
