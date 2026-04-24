@@ -194,6 +194,7 @@ python bot.py
 | Google Sheets not saving | Confirm the service account has Editor access to the sheet |
 | Admin group notification fails | Make sure bot is admin in the group and `ADMIN_GROUP_ID` is negative |
 | `credentials.json` not found | Check `GOOGLE_CREDS_FILE` in `.env` points to the correct path |
+| `pydantic-core`/`maturin` install fails on Render with `Read-only file system` | Set `PYTHON_VERSION=3.11.11` so pip uses prebuilt wheels instead of compiling Rust crates (already included in `render.yaml`) |
 
 ---
 
