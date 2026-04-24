@@ -5,8 +5,11 @@ Uzbek messages · Python 3.11+ · aiogram 3.x · Google Sheets API
 
 import asyncio
 import logging
+import os
 from datetime import datetime
 from typing import Optional
+
+from aiohttp import web
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
@@ -294,12 +297,33 @@ async def process_parent_phone(message: Message, state: FSMContext, bot: Bot):
 
 
 # ──────────────────────────────────────────────────────────
+# Health check web server (Render.com free tier uchun)
+# ──────────────────────────────────────────────────────────
+async def health(request):
+    return web.Response(text="OK")
+
+
+async def run_web():
+    app = web.Application()
+    app.router.add_get("/", health)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.getenv("PORT", 8080))
+    site = web.TCPSite(runner, "0.0.0.0", port)
+    await site.start()
+    logger.info("Health check server started on port %s", port)
+
+
+# ──────────────────────────────────────────────────────────
 # Entry point
 # ──────────────────────────────────────────────────────────
 async def main():
     bot = Bot(token=BOT_TOKEN)
     logger.info("Bot started")
-    await dp.start_polling(bot)
+    await asyncio.gather(
+        run_web(),
+        dp.start_polling(bot),
+    )
 
 
 if __name__ == "__main__":
