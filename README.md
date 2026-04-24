@@ -142,7 +142,12 @@ Ushbu loyiha `render.yaml` bilan tayyorlangan. Render’da yangi **Blueprint** s
    - `ADMIN_GROUP_ID`
    - `SPREADSHEET_ID`
    - `GOOGLE_CREDS_JSON`  ← `credentials.json` faylining to‘liq JSON matni
-4. Deploy tugagach, loglarda `Bot started` va `Health check server started` yozuvlarini tekshiring.
+4. Quyidagilarni ham tekshiring:
+   - `BOT_TOKEN` → BotFather bergan token (masalan `123...:ABC...`)
+   - `ADMIN_GROUP_ID` → faqat raqam, manfiy ko‘rinishda (`-100...`)
+   - `SPREADSHEET_ID` → Google Sheet URL ichidagi ID qismi (yoki to‘liq URL ham bo‘ladi)
+   - `GOOGLE_CREDS_JSON` → service account JSON faylning to‘liq matni
+5. Deploy tugagach, loglarda `Bot started` va `Health check server started` yozuvlarini tekshiring.
 
 > Nega `GOOGLE_CREDS_JSON`?
 > Render free muhitida fayl saqlash ishonchli emas, shuning uchun service account JSON ni env orqali berish tavsiya etiladi.
@@ -193,7 +198,9 @@ python bot.py
 | Bot doesn't reply | Check that polling started without errors |
 | Google Sheets not saving | Confirm the service account has Editor access to the sheet |
 | Admin group notification fails | Make sure bot is admin in the group and `ADMIN_GROUP_ID` is negative |
+| `ADMIN_GROUP_ID` xato formatda | Faqat raqam bo‘lishi kerak (`-100...`), `@groupname` ishlamaydi |
 | `credentials.json` not found | Check `GOOGLE_CREDS_FILE` in `.env` points to the correct path |
+| `Exited with status 1 while running your code` (Render) | Ko‘pincha env var yetishmaydi. Endi ilova yo‘q env var nomini logda aniq ko‘rsatadi (`Missing required environment variable: ...`). Render Environment bo‘limida `BOT_TOKEN`, `ADMIN_GROUP_ID`, `SPREADSHEET_ID`, `GOOGLE_CREDS_JSON` qiymatlarini qayta tekshiring. |
 | `pydantic-core`/`maturin` install fails on Render with `Read-only file system` | Use Python `3.11.11` (not `3.14`) so pip downloads prebuilt wheels. This repo now pins it in both `render.yaml`, `runtime.txt`, and `.python-version`. Then redeploy with **Clear build cache & deploy**. |
 
 ---
