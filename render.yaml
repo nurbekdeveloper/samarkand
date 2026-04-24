@@ -1,5 +1,5 @@
 services:
-  - type: worker
+  - type: web
     name: samarkand-bot
     runtime: python
     buildCommand: pip install -r requirements.txt
@@ -11,5 +11,5 @@ services:
         sync: false
       - key: SPREADSHEET_ID
         sync: false
-      - key: GOOGLE_CREDS_FILE
-        value: credentials.json
+      - key: GOOGLE_CREDS_JSON
+        sync: false

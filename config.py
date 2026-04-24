@@ -4,7 +4,6 @@ Copy .env.example → .env, fill in values, then run:  python bot.py
 """
 
 import os
-import json
 import tempfile
 from dotenv import load_dotenv
 
@@ -23,10 +22,8 @@ def get_credentials_file() -> str:
     """
     creds_json = os.getenv("GOOGLE_CREDS_JSON")
     if creds_json:
-        tmp = tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        )
-        tmp.write(creds_json)
-        tmp.flush()
-        return tmp.name
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
+            tmp.write(creds_json)
+            tmp.flush()
+            return tmp.name
     return os.getenv("GOOGLE_CREDS_FILE", "credentials.json")
