@@ -16,7 +16,7 @@ def _required_env(name: str) -> str:
     if not value:
         raise RuntimeError(
             f"Missing required environment variable: {name}. "
-            "Check Render Environment tab or your local .env file."
+            "Set it in the Replit Secrets tab or your local .env file."
         )
     return value
 
@@ -56,13 +56,21 @@ def _parse_admin_group_id(value: str) -> int:
 
 BOT_TOKEN = _required_env("BOT_TOKEN")  # From @BotFather
 ADMIN_GROUP_ID = _parse_admin_group_id(_required_env("ADMIN_GROUP_ID"))  # Negative int, e.g. -1001234567890
-SPREADSHEET_ID = _normalize_spreadsheet_id(_required_env("SPREADSHEET_ID"))
+
+# Google Sheets is OPTIONAL. If SPREADSHEET_ID is not set, registrations
+# are only logged to console and sent to the admin group.
+_raw_spreadsheet_id = os.getenv("SPREADSHEET_ID", "").strip()
+SPREADSHEET_ID = _normalize_spreadsheet_id(_raw_spreadsheet_id) if _raw_spreadsheet_id else ""
+
+SHEETS_ENABLED = bool(SPREADSHEET_ID) and bool(
+    os.getenv("GOOGLE_CREDS_JSON") or os.getenv("GOOGLE_CREDS_FILE") or os.path.exists("credentials.json")
+)
 
 
 def get_credentials_file() -> str:
     """
     Returns path to credentials.json.
-    If GOOGLE_CREDS_JSON env var is set (Render.com), writes it to a temp file.
+    If GOOGLE_CREDS_JSON env var is set, writes it to a temp file.
     Otherwise falls back to GOOGLE_CREDS_FILE path (local dev).
     """
     creds_json = os.getenv("GOOGLE_CREDS_JSON")
