@@ -4,11 +4,13 @@ Uzbek messages · Python 3.11+ · aiogram 3.x · Google Sheets API
 """
 
 import asyncio
+import json
 import logging
 import os
 import re
 from datetime import datetime
 
+import aiohttp
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
@@ -266,15 +268,29 @@ async def process_parent_phone(message: Message, state: FSMContext, bot: Bot):
         "comment":      "",
     }
 
-    # Save to Google Sheets
+    # Save to Google Sheets (no-op if not configured)
     try:
         save_to_sheets(record)
     except Exception as e:
         logger.error("Google Sheets error: %s", e)
-        await message.answer(
-            "⚠️ Texnik xatolik yuz berdi. Iltimos, biroz kutib qayta urinib ko'ring."
-        )
-        return
+
+    # Forward to external webhook (e.g. yuboraman.uz CRM) if configured
+    webhook_url = os.getenv("WEBHOOK_URL", "").strip()
+    if webhook_url:
+        try:
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(webhook_url, json=record) as resp:
+                    body = await resp.text()
+                    if resp.status >= 400:
+                        logger.error(
+                            "Webhook %s returned %s: %s",
+                            webhook_url, resp.status, body[:200],
+                        )
+                    else:
+                        logger.info("Webhook delivered (%s)", resp.status)
+        except Exception as e:
+            logger.error("Webhook error: %s", e)
 
     # Confirm to user
     await message.answer(

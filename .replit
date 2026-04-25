@@ -37,3 +37,8 @@ externalPort = 80
 [deployment]
 deploymentTarget = "vm"
 run = ["python", "bot.py"]
+
+[userenv]
+
+[userenv.shared]
+WEBHOOK_URL = "https://yuboraman.uz/api/v1/sites/webhook/822f2392-7249-4f64-9f3f-ff599c8d5e30-1777092257/"
