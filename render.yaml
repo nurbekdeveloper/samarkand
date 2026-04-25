@@ -1,19 +1,36 @@
 services:
-  - type: web
+  # Background worker — runs `python bot.py` continuously (Telegram long polling).
+  # Doesn't need a public HTTP port, so deploy as a "worker" service on Render.
+  - type: worker
     name: samarkand-bot
     runtime: python
+    plan: starter        # workers don't have a free tier; pick the cheapest
+    buildCommand: pip install -r requirements.txt
+    startCommand: python bot.py
     envVars:
+      # ── Runtime ─────────────────────────────────────────
       - key: PYTHON_VERSION
         value: 3.11.11
       - key: PIP_ONLY_BINARY
-        value: :all:
+        value: ":all:"
+
+      # ── Required ────────────────────────────────────────
+      # Telegram bot token from @BotFather
       - key: BOT_TOKEN
         sync: false
+      # Admin Telegram group/chat id (negative integer, e.g. -1001234567890)
       - key: ADMIN_GROUP_ID
         sync: false
+
+      # ── Optional ────────────────────────────────────────
+      # Bot owner's personal Telegram user id — enables /list command
+      - key: OWNER_ID
+        sync: false
+      # External CRM/webhook URL (yuboraman.uz, etc.) — receives JSON POST per registration
+      - key: WEBHOOK_URL
+        sync: false
+      # Direct Google Sheets integration (skip these if you only use the webhook above)
       - key: SPREADSHEET_ID
         sync: false
       - key: GOOGLE_CREDS_JSON
         sync: false
-    buildCommand: pip install -r requirements.txt
-    startCommand: python bot.py
