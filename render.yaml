@@ -29,6 +29,9 @@ services:
       # External CRM/webhook URL (yuboraman.uz, etc.) — receives JSON POST per registration
       - key: WEBHOOK_URL
         sync: false
+      # Google Sheets integration is OFF by default. Set true only if needed.
+      - key: ENABLE_GOOGLE_SHEETS
+        value: "false"
       # Direct Google Sheets integration (skip these if you only use the webhook above)
       - key: SPREADSHEET_ID
         sync: false
