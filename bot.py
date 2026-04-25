@@ -12,7 +12,7 @@ from datetime import datetime
 
 import aiohttp
 from aiogram import Bot, Dispatcher, F
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
@@ -24,6 +24,7 @@ from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
+    BotCommand,
 )
 
 from config import BOT_TOKEN, ADMIN_GROUP_ID
@@ -31,6 +32,44 @@ from sheets import save_to_sheets
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
+
+# Bot owner — only this Telegram user id can use admin commands like /list.
+# Set OWNER_ID secret to your numeric Telegram user id (get it from @userinfobot).
+OWNER_ID = int(os.getenv("OWNER_ID", "0") or 0)
+
+# Persistent log of registrations (one JSON object per line)
+REGISTRATIONS_FILE = "registrations.jsonl"
+
+
+def append_registration(record: dict) -> None:
+    """Append one registration to the local JSONL file."""
+    try:
+        with open(REGISTRATIONS_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception as e:
+        logger.error("Failed to write registration to file: %s", e)
+
+
+def read_registrations(limit: int = 20) -> list[dict]:
+    """Return the last `limit` registrations from the local file."""
+    if not os.path.exists(REGISTRATIONS_FILE):
+        return []
+    try:
+        with open(REGISTRATIONS_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        records = []
+        for line in lines[-limit:]:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+        return records
+    except Exception as e:
+        logger.error("Failed to read registrations file: %s", e)
+        return []
 
 # ──────────────────────────────────────────────────────────
 # States
@@ -126,6 +165,37 @@ def start_keyboard() -> InlineKeyboardMarkup:
 # Handlers
 # ──────────────────────────────────────────────────────────
 dp = Dispatcher(storage=MemoryStorage())
+
+
+@dp.message(Command("list"))
+async def cmd_list(message: Message):
+    """Owner-only: show last 20 registrations."""
+    if not OWNER_ID or message.from_user.id != OWNER_ID:
+        await message.answer("⛔ Bu buyruq faqat bot egasi uchun.")
+        return
+
+    records = read_registrations(limit=20)
+    if not records:
+        await message.answer("📭 Hozircha hech kim ro'yxatdan o'tmagan.")
+        return
+
+    total = sum(1 for _ in open(REGISTRATIONS_FILE, "r", encoding="utf-8")) if os.path.exists(REGISTRATIONS_FILE) else 0
+    header = f"📋 <b>So'nggi {len(records)} ta ro'yxatdan o'tgan</b> (jami: {total})\n\n"
+    chunks = [header]
+    for i, r in enumerate(records, 1):
+        chunks.append(
+            f"<b>{i}.</b> {r.get('fullname','—')}\n"
+            f"   📍 {r.get('region','—')} {('· ' + r.get('district','')) if r.get('district') else ''}\n"
+            f"   📞 <code>{r.get('phone','—')}</code> | 👨‍👩‍👧 <code>{r.get('parent_phone','—')}</code>\n"
+            f"   🆔 <code>{r.get('telegram_id','—')}</code> {r.get('username','')}\n"
+            f"   🕒 {r.get('date','—')}\n\n"
+        )
+
+    text = "".join(chunks)
+    # Telegram message limit is 4096 chars — split if needed
+    while text:
+        await message.answer(text[:4000], parse_mode="HTML")
+        text = text[4000:]
 
 
 @dp.message(CommandStart())
@@ -268,6 +338,9 @@ async def process_parent_phone(message: Message, state: FSMContext, bot: Bot):
         "comment":      "",
     }
 
+    # Persist locally so /list can show it later
+    append_registration(record)
+
     # Save to Google Sheets (no-op if not configured)
     try:
         save_to_sheets(record)
@@ -334,10 +407,22 @@ async def handle_request(reader, writer):
 
 async def run_web():
     port = int(os.getenv("PORT", 8080))
-    server = await asyncio.start_server(handle_request, "0.0.0.0", port)
+    # reuse_address/reuse_port avoid "address already in use" after a quick restart
+    server = await asyncio.start_server(
+        handle_request, "0.0.0.0", port,
+        reuse_address=True, reuse_port=True,
+    )
     logger.info("Health check server started on port %s", port)
     async with server:
         await server.serve_forever()
+
+
+async def setup_bot_commands(bot: Bot) -> None:
+    """Register the menu of commands shown in Telegram."""
+    await bot.set_my_commands([
+        BotCommand(command="start", description="Ro'yxatdan o'tishni boshlash"),
+        BotCommand(command="list",  description="So'nggi ro'yxatlar (faqat egasi)"),
+    ])
 
 
 # ──────────────────────────────────────────────────────────
@@ -345,6 +430,7 @@ async def run_web():
 # ──────────────────────────────────────────────────────────
 async def main():
     bot = Bot(token=BOT_TOKEN)
+    await setup_bot_commands(bot)
     logger.info("Bot started")
     await asyncio.gather(
         run_web(),
