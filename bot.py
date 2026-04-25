@@ -430,6 +430,11 @@ async def setup_bot_commands(bot: Bot) -> None:
 # ──────────────────────────────────────────────────────────
 async def main():
     bot = Bot(token=BOT_TOKEN)
+    me = await bot.get_me()
+    logger.info("Authorized as @%s (id=%s)", me.username, me.id)
+    # If webhook is still configured (from previous hosting), long polling will not receive updates.
+    await bot.delete_webhook(drop_pending_updates=True)
+    logger.info("Webhook cleared. Starting long polling...")
     await setup_bot_commands(bot)
     logger.info("Bot started")
     await asyncio.gather(

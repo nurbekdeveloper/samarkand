@@ -140,17 +140,19 @@ Ushbu loyiha `render.yaml` bilan tayyorlangan. Render’da yangi **Blueprint** s
 3. Env vars kiriting:
    - `BOT_TOKEN`
    - `ADMIN_GROUP_ID`
+   - `WEBHOOK_URL`  ← yuboraman.uz (yoki boshqa CRM endpoint)
+4. Agar Google Sheets ishlatmasangiz, `SPREADSHEET_ID` va `GOOGLE_CREDS_JSON` kerak emas.
+5. Agar keyinchalik Google Sheets kerak bo‘lsa, qo‘shimcha ravishda:
+   - `ENABLE_GOOGLE_SHEETS=true`
    - `SPREADSHEET_ID`
    - `GOOGLE_CREDS_JSON`  ← `credentials.json` faylining to‘liq JSON matni
-4. Quyidagilarni ham tekshiring:
+6. Quyidagilarni ham tekshiring:
    - `BOT_TOKEN` → BotFather bergan token (masalan `123...:ABC...`)
    - `ADMIN_GROUP_ID` → faqat raqam, manfiy ko‘rinishda (`-100...`)
-   - `SPREADSHEET_ID` → Google Sheet URL ichidagi ID qismi (yoki to‘liq URL ham bo‘ladi)
-   - `GOOGLE_CREDS_JSON` → service account JSON faylning to‘liq matni
-5. Deploy tugagach, loglarda `Bot started` va `Health check server started` yozuvlarini tekshiring.
+   - `WEBHOOK_URL` → to‘liq HTTPS endpoint URL
+7. Deploy tugagach, loglarda `Bot started` va `Health check server started` yozuvlarini tekshiring.
 
-> Nega `GOOGLE_CREDS_JSON`?
-> Render free muhitida fayl saqlash ishonchli emas, shuning uchun service account JSON ni env orqali berish tavsiya etiladi.
+> `GOOGLE_CREDS_JSON` faqat `ENABLE_GOOGLE_SHEETS=true` bo‘lganda kerak.
 
 ### Option A — systemd (Linux VPS)
 
@@ -201,7 +203,9 @@ python bot.py
 | `ADMIN_GROUP_ID` xato formatda | Faqat raqam bo‘lishi kerak (`-100...`), `@groupname` ishlamaydi |
 | `credentials.json` not found | Check `GOOGLE_CREDS_FILE` in `.env` points to the correct path |
 | `Exited with status 1 while running your code` (Render) | Ko‘pincha env var yetishmaydi. Endi ilova yo‘q env var nomini logda aniq ko‘rsatadi (`Missing required environment variable: ...`). Render Environment bo‘limida `BOT_TOKEN`, `ADMIN_GROUP_ID`, `SPREADSHEET_ID`, `GOOGLE_CREDS_JSON` qiymatlarini qayta tekshiring. |
+| `Google creds` kerakmas, webhook ishlatyapman | To‘g‘ri: faqat `WEBHOOK_URL` bilan ishlasa bo‘ladi. Google Sheets butunlay o‘chiq turadi (`ENABLE_GOOGLE_SHEETS=false`, default). |
 | `pydantic-core`/`maturin` install fails on Render with `Read-only file system` | Use Python `3.11.11` (not `3.14`) so pip downloads prebuilt wheels. This repo now pins it in both `render.yaml`, `runtime.txt`, and `.python-version`. Then redeploy with **Clear build cache & deploy**. |
+| Bot deploy bo‘ldi, lekin `/start` javob bermaydi | Odatda eski webhook qolib ketgan bo‘ladi. Endi bot startup’da webhook’ni avtomatik tozalaydi (`delete_webhook(drop_pending_updates=True)`). Deploydan keyin logda `Webhook cleared. Starting long polling...` chiqishini tekshiring. |
 
 ---
 
