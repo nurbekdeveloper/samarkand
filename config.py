@@ -49,11 +49,17 @@ def _parse_admin_group_id(value: str) -> int:
     when a non-numeric value is supplied.
     """
     try:
-        return int(value.strip())
+        parsed = int(value.strip())
     except ValueError as exc:
         raise RuntimeError(
             "ADMIN_GROUP_ID must be a numeric Telegram chat id (example: -1001234567890)."
         ) from exc
+    if parsed >= 0:
+        raise RuntimeError(
+            "ADMIN_GROUP_ID must be a NEGATIVE Telegram group/channel id "
+            "(example: -1001234567890). You likely entered a user id by mistake."
+        )
+    return parsed
 
 
 BOT_TOKEN = _required_env("BOT_TOKEN")  # From @BotFather

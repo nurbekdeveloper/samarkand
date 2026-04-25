@@ -201,6 +201,7 @@ python bot.py
 | Google Sheets not saving | Confirm the service account has Editor access to the sheet |
 | Admin group notification fails | Make sure bot is admin in the group and `ADMIN_GROUP_ID` is negative |
 | `ADMIN_GROUP_ID` xato formatda | Faqat raqam bo‘lishi kerak (`-100...`), `@groupname` ishlamaydi |
+| Admin xabari foydalanuvchining o‘ziga borib qoladi | `ADMIN_GROUP_ID` noto‘g‘ri (user id kiritilgan). Group/channel id manfiy bo‘lishi shart (`-100...`). |
 | `credentials.json` not found | Check `GOOGLE_CREDS_FILE` in `.env` points to the correct path |
 | `Exited with status 1 while running your code` (Render) | Ko‘pincha env var yetishmaydi. Endi ilova yo‘q env var nomini logda aniq ko‘rsatadi (`Missing required environment variable: ...`). Render Environment bo‘limida `BOT_TOKEN`, `ADMIN_GROUP_ID`, `SPREADSHEET_ID`, `GOOGLE_CREDS_JSON` qiymatlarini qayta tekshiring. |
 | `Google creds` kerakmas, webhook ishlatyapman | To‘g‘ri: faqat `WEBHOOK_URL` bilan ishlasa bo‘ladi. Google Sheets butunlay o‘chiq turadi (`ENABLE_GOOGLE_SHEETS=false`, default). |
