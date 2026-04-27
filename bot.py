@@ -203,9 +203,9 @@ async def cmd_start(message: Message, state: FSMContext):
     """Show welcome message and registration button."""
     await state.clear()
     text = (
-        "🚨 <b>DIQQAT! SAMARQAND IIV AKADEMIK LITSEY NOMZODLARI UCHUN MAXSUS BOT</b> 🚨\n\n"
+        "🚨 <b>DIQQAT! IIV AKADEMIK LITSEY NOMZODLARI UCHUN MAXSUS BOT</b> 🚨\n\n"
         "Siz O'zbekiston Respublikasi Ichki ishlar vazirligi tizimidagi "
-        "Samarqand akademik litseyiga hujjat topshirdingizmi?\n\n"
+        "akademik litseyiga hujjat topshirdingizmi?\n\n"
         "Endi siz uchun eng muhim bosqich — psixologik test va saralash jarayoni boshlanmoqda!\n\n"
         "Ushbu bot orqali siz:\n"
         "✅ Psixologik testlar haqida aniq ma'lumot olasiz\n"
